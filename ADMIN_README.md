@@ -124,10 +124,10 @@ A comprehensive entertainment content management system with MongoDB integration
 
 ### Access Points
 
--  **Frontend**: http://localhost:5173
--  **Admin Panel**: http://localhost:5173/admin
--  **Backend API**: http://localhost:5000/api
--  **Health Check**: http://localhost:5000/health
+-  **Frontend**: https://echo-eight-ruddy.vercel.app/
+-  **Admin Panel**: https://echo-eight-ruddy.vercel.app/admin
+-  **Backend API**: https://echo-server-alhh.onrender.com/api
+-  **Health Check**: https://echo-server-alhh.onrender.com/health
 
 ### Default Admin Credentials
 

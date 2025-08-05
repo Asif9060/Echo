@@ -83,7 +83,7 @@ const ItemsPage = () => {
                screenshotsFiles.map(async (file) => {
                   const uploadFormData = new FormData();
                   uploadFormData.append("image", file);
-                  const response = await fetch("/api/upload", {
+                  const response = await fetch("https://echo-server-alhh.onrender.com/api/upload", {
                      method: "POST",
                      body: uploadFormData,
                   });

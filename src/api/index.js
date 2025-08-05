@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 // API configuration for main frontend
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = "https://echo-server-alhh.onrender.com/api";
 
 // Frontend API functions for public data
 export const frontendAPI = {
