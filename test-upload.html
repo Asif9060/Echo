@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>Test Image Upload</title>
+   </head>
+   <body>
+      <h1>Test Cloudinary Image Upload</h1>
+      <form id="uploadForm">
+         <input type="file" id="imageFile" accept="image/*" required />
+         <button type="submit">Upload Image</button>
+      </form>
+      <div id="result"></div>
+
+      <script>
+         document.getElementById("uploadForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const fileInput = document.getElementById("imageFile");
+            const resultDiv = document.getElementById("result");
+
+            if (!fileInput.files[0]) {
+               resultDiv.innerHTML = '<p style="color: red;">Please select a file</p>';
+               return;
+            }
+
+            const formData = new FormData();
+            formData.append("image", fileInput.files[0]);
+
+            try {
+               resultDiv.innerHTML = "<p>Uploading...</p>";
+
+               const response = await fetch(
+                  "http://localhost:5000/api/items/upload-image",
+                  {
+                     method: "POST",
+                     body: formData,
+                  }
+               );
+
+               const result = await response.json();
+
+               if (result.success) {
+                  resultDiv.innerHTML = `
+                        <p style="color: green;">Upload successful!</p>
+                        <p>Image URL: <a href="${result.data.imageUrl}" target="_blank">${result.data.imageUrl}</a></p>
+                        <img src="${result.data.imageUrl}" style="max-width: 300px; max-height: 300px;" alt="Uploaded image">
+                    `;
+               } else {
+                  resultDiv.innerHTML = `<p style="color: red;">Upload failed: ${result.message}</p>`;
+               }
+            } catch (error) {
+               resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+         });
+      </script>
+   </body>
+</html>
