@@ -84,6 +84,7 @@ const Hero = () => {
                   .slice(0, 4)
                   .map((cat) => ({
                      id: cat.slug || cat._id,
+                     slug: cat.slug || cat._id,
                      name: cat.name,
                      description: cat.description,
                      icon: cat.icon || "folder",
@@ -98,6 +99,7 @@ const Hero = () => {
             setCategories([
                {
                   id: "movies",
+                  slug: "movies",
                   name: "Movies",
                   description: "Discover blockbuster hits and indie gems",
                   icon: "film",
@@ -105,6 +107,7 @@ const Hero = () => {
                },
                {
                   id: "series",
+                  slug: "series",
                   name: "TV Series",
                   description: "Binge-worthy shows and limited series",
                   icon: "tv",
@@ -112,6 +115,7 @@ const Hero = () => {
                },
                {
                   id: "anime",
+                  slug: "anime",
                   name: "Anime",
                   description: "Japanese animation and manga adaptations",
                   icon: "anime",
@@ -119,6 +123,7 @@ const Hero = () => {
                },
                {
                   id: "games",
+                  slug: "games",
                   name: "Games",
                   description: "Gaming content and reviews",
                   icon: "gamepad",
@@ -134,7 +139,12 @@ const Hero = () => {
    }, []);
 
    const handleCategoryClick = (categorySlug) => {
-      navigate(`/${categorySlug}`);
+      console.log("Category clicked:", categorySlug);
+      if (categorySlug) {
+         navigate(`/${categorySlug}`);
+      } else {
+         console.error("Category slug is undefined");
+      }
    };
 
    const handleExploreClick = () => {
