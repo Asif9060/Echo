@@ -808,7 +808,7 @@ const ItemsPage = () => {
                                        }
                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                                        placeholder="Enter item title..."
-                                       required
+                                       
                                     />
                                  </div>
                                  <div>
@@ -824,7 +824,7 @@ const ItemsPage = () => {
                                           })
                                        }
                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                                       required>
+                                       >
                                        <option value="" className="bg-slate-800">
                                           Select Category
                                        </option>
@@ -842,7 +842,7 @@ const ItemsPage = () => {
 
                               <div>
                                  <label className="block text-sm font-medium text-gray-300 mb-3">
-                                    Description *
+                                    Description
                                  </label>
                                  <textarea
                                     value={formData.description}
@@ -855,7 +855,7 @@ const ItemsPage = () => {
                                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 resize-none"
                                     rows={4}
                                     placeholder="Describe your item..."
-                                    required
+                                    
                                  />
                               </div>
                            </div>
