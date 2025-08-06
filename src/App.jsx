@@ -1,9 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
-import MoviesPage from "./pages/MoviesPage";
-import SeriesPage from "./pages/SeriesPage";
-import AnimePage from "./pages/AnimePage";
-import GamesPage from "./pages/GamesPage";
 import ExplorePage from "./pages/ExplorePage";
 import DynamicCategoryPage from "./pages/DynamicCategoryPage";
 import DynamicItemPage from "./pages/DynamicItemPage";
@@ -29,12 +25,6 @@ function App() {
                   <Route path="items" element={<ItemsPage />} />
                </Route>
 
-               {/* Legacy static routes (fallback for existing bookmarks) */}
-               <Route path="/movies" element={<MoviesPage />} />
-               <Route path="/series" element={<SeriesPage />} />
-               <Route path="/anime" element={<AnimePage />} />
-               <Route path="/games" element={<GamesPage />} />
-
                {/* Dynamic item routes - more specific routes first */}
                <Route path="/:categorySlug/:itemSlug" element={<DynamicItemPage />} />
 
@@ -45,6 +35,7 @@ function App() {
                <Route path="*" element={<NotFoundPage />} />
             </Routes>
          </div>
+         
       </Router>
    );
 }

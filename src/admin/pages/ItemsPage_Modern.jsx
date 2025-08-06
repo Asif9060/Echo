@@ -83,8 +83,8 @@ const ItemsPage = () => {
                screenshotsFiles.map(async (file) => {
                   const uploadFormData = new FormData();
                   uploadFormData.append("image", file);
-                  const uploadUrl = import.meta.env.VITE_API_URL 
-                     ? `${import.meta.env.VITE_API_URL.replace('/api', '')}/api/upload`
+                  const uploadUrl = import.meta.env.VITE_API_URL
+                     ? `${import.meta.env.VITE_API_URL.replace("/api", "")}/api/upload`
                      : "https://echo-server-alhh.onrender.com/api/upload";
                   const response = await fetch(uploadUrl, {
                      method: "POST",

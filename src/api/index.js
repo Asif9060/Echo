@@ -1,7 +1,8 @@
 import { useState } from "react";
 
 // API configuration for main frontend
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://echo-server-alhh.onrender.com/api";
+const API_BASE_URL =
+   import.meta.env.VITE_API_URL || "https://echo-server-alhh.onrender.com/api";
 
 // Frontend API functions for public data
 export const frontendAPI = {

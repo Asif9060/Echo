@@ -1,6 +1,7 @@
 import { useState } from "react";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://echo-server-alhh.onrender.com/api";
+const API_BASE_URL =
+   import.meta.env.VITE_API_URL || "https://echo-server-alhh.onrender.com/api";
 
 // Categories API functions
 export const categoriesAPI = {
