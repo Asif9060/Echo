@@ -72,7 +72,18 @@ export const itemsAPI = {
          },
          body: JSON.stringify(itemData),
       });
-      return response.json();
+
+      const data = await response.json();
+
+      // Check if the HTTP response is ok and the data indicates success
+      if (!response.ok) {
+         return {
+            success: false,
+            message: data.message || `HTTP error! status: ${response.status}`,
+         };
+      }
+
+      return data;
    },
 
    update: async (id, itemData) => {
@@ -83,14 +94,36 @@ export const itemsAPI = {
          },
          body: JSON.stringify(itemData),
       });
-      return response.json();
+
+      const data = await response.json();
+
+      // Check if the HTTP response is ok and the data indicates success
+      if (!response.ok) {
+         return {
+            success: false,
+            message: data.message || `HTTP error! status: ${response.status}`,
+         };
+      }
+
+      return data;
    },
 
    delete: async (id) => {
       const response = await fetch(`${API_BASE_URL}/items/${id}`, {
          method: "DELETE",
       });
-      return response.json();
+
+      const data = await response.json();
+
+      // Check if the HTTP response is ok and the data indicates success
+      if (!response.ok) {
+         return {
+            success: false,
+            message: data.message || `HTTP error! status: ${response.status}`,
+         };
+      }
+
+      return data;
    },
 
    bulkDelete: async (ids) => {

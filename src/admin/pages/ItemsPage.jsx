@@ -31,6 +31,7 @@ const ItemsPage = () => {
       screenshots: [],
       soundtrackLinks: [""],
       ratings: { ...emptyRatings },
+      rating: "",
       characters: [],
       slug: "",
       category: "",
@@ -38,6 +39,9 @@ const ItemsPage = () => {
    });
    const [screenshotsFiles, setScreenshotsFiles] = useState([]);
    const [ratingsEnabled, setRatingsEnabled] = useState(false);
+   // Preserve raw text while typing so commas/spaces aren't eaten by immediate parsing
+   const [platformsText, setPlatformsText] = useState("");
+   const [genresText, setGenresText] = useState("");
 
    useEffect(() => {
       fetchItems();
@@ -87,6 +91,12 @@ const ItemsPage = () => {
       setUploadingImage(true);
 
       try {
+         // Guard: category is required for creating an item
+         if (!formData.category) {
+            setFormError("Please select a category.");
+            setUploadingImage(false);
+            return;
+         }
          // Upload screenshots if any
          let screenshotsUrls = formData.screenshots;
          if (screenshotsFiles.length > 0) {
@@ -108,15 +118,37 @@ const ItemsPage = () => {
             screenshotsUrls = [...formData.screenshots, ...uploaded];
          }
 
+         // Parse text inputs into arrays at submit time
+         const parsedPlatforms = (platformsText || "")
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+         const parsedGenres = (genresText || "")
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+
          const itemData = {
             ...formData,
             screenshots: screenshotsUrls,
-            platforms: formData.platforms.filter(Boolean),
-            genres: formData.genres.filter(Boolean),
+            platforms: parsedPlatforms,
+            genres: parsedGenres,
             keyFeatures: formData.keyFeatures.filter(Boolean),
             highlights: formData.highlights.filter(Boolean),
             soundtrackLinks: formData.soundtrackLinks.filter(Boolean),
          };
+
+         // Optional overall rating (0-5)
+         if (
+            formData.rating !== "" &&
+            formData.rating !== null &&
+            formData.rating !== undefined
+         ) {
+            const r = Number(formData.rating);
+            if (!Number.isNaN(r)) itemData.rating = r;
+         } else {
+            delete itemData.rating;
+         }
 
          // Only include ratings if they are enabled and have valid values
          const hasValidRatings =
@@ -142,10 +174,11 @@ const ItemsPage = () => {
             });
             // If no valid ratings, remove the entire ratings object
             if (Object.keys(itemData.ratings).length === 0) {
-               itemData.ratings = null;
+               delete itemData.ratings;
             }
          } else {
-            itemData.ratings = null; // Explicitly clear ratings
+            // Do not include ratings field when disabled/empty
+            delete itemData.ratings;
          }
 
          let response;
@@ -155,6 +188,8 @@ const ItemsPage = () => {
             response = await itemsAPI.create(itemData);
          }
 
+         console.log("API Response:", response); // Debug log
+
          if (response.success) {
             await fetchItems();
             resetForm();
@@ -162,6 +197,7 @@ const ItemsPage = () => {
                editingItem ? "Item updated successfully!" : "Item created successfully!"
             );
          } else {
+            console.error("API Error Response:", response); // Debug log
             setFormError(response.message || "Failed to save item");
          }
       } catch (err) {
@@ -194,7 +230,7 @@ const ItemsPage = () => {
       // Check if item has ratings to set the ratings enabled state
       const hasRatings = item.ratings && Object.keys(item.ratings).length > 0;
       setRatingsEnabled(hasRatings);
-      
+
       setFormData({
          title: item.title || "",
          description: item.description || "",
@@ -213,6 +249,7 @@ const ItemsPage = () => {
                ? item.soundtrackLinks
                : [""],
          ratings: item.ratings || { ...emptyRatings },
+         rating: item.rating ?? "",
          characters: item.characters || [],
          slug: item.slug || "",
          category: item.category._id || item.category,
@@ -221,6 +258,9 @@ const ItemsPage = () => {
       setScreenshotsFiles([]);
       setShowModal(true);
       setFormError("");
+      // Initialize text fields for comma-separated inputs
+      setPlatformsText((item.platforms || []).join(", "));
+      setGenresText((item.genres || []).join(", "));
    };
 
    const resetForm = () => {
@@ -238,6 +278,7 @@ const ItemsPage = () => {
          screenshots: [],
          soundtrackLinks: [""],
          ratings: { ...emptyRatings },
+         rating: "",
          characters: [],
          slug: "",
          category: "",
@@ -248,13 +289,15 @@ const ItemsPage = () => {
       setShowModal(false);
       setFormError("");
       setRatingsEnabled(false); // Reset ratings enabled state
+      setPlatformsText("");
+      setGenresText("");
    };
 
    const handleRemoveRatings = () => {
       setRatingsEnabled(false);
       setFormData({
          ...formData,
-         ratings: { ...emptyRatings }
+         ratings: { ...emptyRatings },
       });
    };
 
@@ -337,7 +380,11 @@ const ItemsPage = () => {
 
                   <button
                      onClick={() => {
+                        // Initialize fresh form and raw text fields
+                        resetForm();
                         setFormError("");
+                        setPlatformsText("");
+                        setGenresText("");
                         setShowModal(true);
                      }}
                      className="group relative bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25 flex items-center space-x-3">
@@ -963,11 +1010,22 @@ const ItemsPage = () => {
                                     </label>
                                     <input
                                        type="text"
-                                       value={formData.platforms.join(", ")}
-                                       onChange={(e) =>
+                                       value={platformsText}
+                                       onChange={(e) => setPlatformsText(e.target.value)}
+                                       onKeyDown={(e) => {
+                                          // Ensure comma and space are allowed; prevent parent handlers from blocking
+                                          if (
+                                             e.key === "," ||
+                                             e.key === " " ||
+                                             e.code === "Space"
+                                          ) {
+                                             e.stopPropagation();
+                                          }
+                                       }}
+                                       onBlur={() =>
                                           setFormData({
                                              ...formData,
-                                             platforms: e.target.value
+                                             platforms: (platformsText || "")
                                                 .split(",")
                                                 .map((s) => s.trim())
                                                 .filter(Boolean),
@@ -983,11 +1041,21 @@ const ItemsPage = () => {
                                     </label>
                                     <input
                                        type="text"
-                                       value={formData.genres.join(", ")}
-                                       onChange={(e) =>
+                                       value={genresText}
+                                       onChange={(e) => setGenresText(e.target.value)}
+                                       onKeyDown={(e) => {
+                                          if (
+                                             e.key === "," ||
+                                             e.key === " " ||
+                                             e.code === "Space"
+                                          ) {
+                                             e.stopPropagation();
+                                          }
+                                       }}
+                                       onBlur={() =>
                                           setFormData({
                                              ...formData,
-                                             genres: e.target.value
+                                             genres: (genresText || "")
                                                 .split(",")
                                                 .map((s) => s.trim())
                                                 .filter(Boolean),
@@ -995,6 +1063,26 @@ const ItemsPage = () => {
                                        }
                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                                        placeholder="e.g. Action, RPG"
+                                    />
+                                 </div>
+                                 <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-3">
+                                       Rating (0-5)
+                                    </label>
+                                    <input
+                                       type="number"
+                                       min={0}
+                                       max={5}
+                                       step="0.1"
+                                       value={formData.rating}
+                                       onChange={(e) =>
+                                          setFormData({
+                                             ...formData,
+                                             rating: e.target.value,
+                                          })
+                                       }
+                                       className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                                       placeholder="e.g. 4.5"
                                     />
                                  </div>
                               </div>
@@ -1121,8 +1209,17 @@ const ItemsPage = () => {
                                           type="button"
                                           onClick={handleRemoveRatings}
                                           className="bg-red-500/20 hover:bg-red-500/30 text-red-400 px-4 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2">
-                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                          <svg
+                                             className="w-4 h-4"
+                                             fill="none"
+                                             stroke="currentColor"
+                                             viewBox="0 0 24 24">
+                                             <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                             />
                                           </svg>
                                           <span>Remove Ratings</span>
                                        </button>
@@ -1131,51 +1228,73 @@ const ItemsPage = () => {
                                           type="button"
                                           onClick={handleAddRatings}
                                           className="bg-green-500/20 hover:bg-green-500/30 text-green-400 px-4 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2">
-                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                          <svg
+                                             className="w-4 h-4"
+                                             fill="none"
+                                             stroke="currentColor"
+                                             viewBox="0 0 24 24">
+                                             <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                             />
                                           </svg>
                                           <span>Add Ratings</span>
                                        </button>
                                     )}
                                  </div>
                               </div>
-                              
+
                               {ratingsEnabled && (
                                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                                    {Object.entries(formData.ratings).map(([key, value]) => (
-                                       <div key={key}>
-                                          <label className="block text-sm font-medium text-gray-300 mb-3 capitalize">
-                                             {key}
-                                          </label>
-                                          <input
-                                             type="number"
-                                             min="0"
-                                             max="5"
-                                             step="0.1"
-                                             value={value}
-                                             onChange={(e) =>
-                                                setFormData({
-                                                   ...formData,
-                                                   ratings: {
-                                                      ...formData.ratings,
-                                                      [key]: e.target.value,
-                                                   },
-                                                })
-                                             }
-                                             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                                          />
-                                       </div>
-                                    ))}
+                                    {Object.entries(formData.ratings).map(
+                                       ([key, value]) => (
+                                          <div key={key}>
+                                             <label className="block text-sm font-medium text-gray-300 mb-3 capitalize">
+                                                {key}
+                                             </label>
+                                             <input
+                                                type="number"
+                                                min="0"
+                                                max="5"
+                                                step="0.1"
+                                                value={value}
+                                                onChange={(e) =>
+                                                   setFormData({
+                                                      ...formData,
+                                                      ratings: {
+                                                         ...formData.ratings,
+                                                         [key]: e.target.value,
+                                                      },
+                                                   })
+                                                }
+                                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                                             />
+                                          </div>
+                                       )
+                                    )}
                                  </div>
                               )}
-                              
+
                               {!ratingsEnabled && (
                                  <div className="text-center py-8 text-gray-400">
-                                    <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                    <svg
+                                       className="w-12 h-12 mx-auto mb-3 opacity-50"
+                                       fill="none"
+                                       stroke="currentColor"
+                                       viewBox="0 0 24 24">
+                                       <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                                       />
                                     </svg>
                                     <p>No ratings enabled for this item</p>
-                                    <p className="text-sm text-gray-500 mt-1">Click "Add Ratings" to enable rating system</p>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                       Click "Add Ratings" to enable rating system
+                                    </p>
                                  </div>
                               )}
                            </div>

@@ -67,23 +67,31 @@ const DynamicCategoryPage = () => {
       }
    }, [categorySlug]);
 
+   // helper: compute displayed rating (prefer overall, else average per-aspect)
+   const getDisplayedRating = (obj) => {
+      if (!obj) return null;
+      if (typeof obj.rating === "number" && !Number.isNaN(obj.rating)) return obj.rating;
+      if (obj.ratings) {
+         const {
+            story = 0,
+            graphics = 0,
+            gameplay = 0,
+            replayability = 0,
+         } = obj.ratings || {};
+         return (story + graphics + gameplay + replayability) / 4;
+      }
+      return null;
+   };
+
    // Filter items by rating when filter changes
    useEffect(() => {
       if (!ratingFilter.enabled) {
          setFilteredItems(items);
       } else {
          const filtered = items.filter((item) => {
-            // Calculate average rating from new ratings object
-            const avgRating = item.ratings
-               ? Math.round(
-                    (item.ratings.story +
-                       item.ratings.graphics +
-                       item.ratings.gameplay +
-                       item.ratings.replayability) /
-                       4
-                 )
-               : 0;
-            return avgRating === ratingFilter.value;
+            const r = getDisplayedRating(item);
+            if (r === null) return false;
+            return Math.round(r) === ratingFilter.value;
          });
          setFilteredItems(filtered);
       }
@@ -324,16 +332,10 @@ const DynamicCategoryPage = () => {
                               {/* Gradient overlay for readability */}
                               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none transition-opacity duration-700 group-hover:opacity-90" />
                               {/* Rating badge */}
-                              {item.ratings && (
+                              {getDisplayedRating(item) !== null && (
                                  <div className="absolute top-4 right-4 bg-yellow-400/90 text-black px-3 py-1 rounded-full text-base font-bold shadow-lg flex items-center gap-1 transition-all duration-500 group-hover:scale-110 group-hover:shadow-yellow-300/40">
                                     <span className="text-lg">⭐</span>{" "}
-                                    {Math.round(
-                                       (item.ratings.story +
-                                          item.ratings.graphics +
-                                          item.ratings.gameplay +
-                                          item.ratings.replayability) /
-                                          4
-                                    )}
+                                    {Math.round(getDisplayedRating(item))}
                                  </div>
                               )}
                            </div>

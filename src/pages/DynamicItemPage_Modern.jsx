@@ -85,6 +85,17 @@ const DynamicItemPage = () => {
       );
    };
 
+   // Prefer overall rating when available, otherwise fall back to per-aspect average
+   const getDisplayedRating = (obj) => {
+      if (!obj) return null;
+      const r = obj.rating;
+      if (typeof r === "number" && !Number.isNaN(r)) return r;
+      if (obj.ratings) return calculateAverageRating(obj.ratings);
+      return null;
+   };
+
+   const displayedRating = getDisplayedRating(item);
+
    if (loading) {
       return (
          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -148,13 +159,13 @@ const DynamicItemPage = () => {
                <div className="relative container mx-auto px-6 h-full flex items-end pb-12">
                   <div className="flex items-center space-x-6">
                      {/* Quick Rating Badge */}
-                     {item?.ratings && (
+                     {displayedRating !== null && (
                         <div className="bg-black/50 backdrop-blur-sm border border-white/20 rounded-2xl px-6 py-3">
                            <div className="flex items-center space-x-3">
                               <div className="text-3xl">⭐</div>
                               <div>
                                  <div className="text-2xl font-bold text-white">
-                                    {calculateAverageRating(item.ratings).toFixed(1)}
+                                    {displayedRating.toFixed(1)}
                                  </div>
                                  <div className="text-sm text-gray-300">out of 5</div>
                               </div>
@@ -304,8 +315,8 @@ const DynamicItemPage = () => {
                            </div>
                            <div className="text-center p-4 bg-white/5 rounded-2xl">
                               <div className="text-2xl font-bold text-yellow-400">
-                                 {item?.ratings
-                                    ? calculateAverageRating(item.ratings).toFixed(1)
+                                 {displayedRating !== null
+                                    ? displayedRating.toFixed(1)
                                     : "N/A"}
                               </div>
                               <div className="text-sm text-gray-400">Rating</div>
@@ -627,12 +638,9 @@ const DynamicItemPage = () => {
                                        </div>
                                     )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                                    {relatedItem.ratings && (
+                                    {getDisplayedRating(relatedItem) !== null && (
                                        <div className="absolute bottom-3 left-3 bg-black/50 backdrop-blur-sm text-white px-2 py-1 rounded-lg text-sm">
-                                          ⭐{" "}
-                                          {calculateAverageRating(
-                                             relatedItem.ratings
-                                          ).toFixed(1)}
+                                          ⭐ {getDisplayedRating(relatedItem).toFixed(1)}
                                        </div>
                                     )}
                                  </div>
